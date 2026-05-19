@@ -1,5 +1,5 @@
 ' ================================================
-' Persistent Timer Script for VBScript (timer.vbs)
+' Persistent Timer Script for VBScript (timer.vbs) - CLEANED & REFACTORED
 ' ================================================
 ' Usage examples (run with cscript or wscript):
 '   cscript timer.vbs @12:45 "Timeren er gået"
@@ -20,8 +20,8 @@
 '   • Future timers: left untouched (logged)
 '   • Done timers kept as log
 ' - Uses WScript.Sleep for the new timer
-' - Uses AutoItX TrayTip bubbles for all status messages (much cleaner)
-' - MsgBox / Echo only used when really needed (timer done or startup recovery)
+' - Uses nircmd TrayTip bubbles for all status messages
+' - MsgBox / Echo only used when really needed
 
 Option Explicit
 
@@ -37,7 +37,7 @@ Function IIf(expr, truepart, falsepart)
 End Function
 
 ' ================================================
-' AutoItX for non-intrusive bubble notifications
+' AutoItX for non-intrusive bubble notifications (kept for compatibility)
 ' ================================================
 Dim AutoItX
 On Error Resume Next
@@ -53,12 +53,11 @@ Set shell = CreateObject("WScript.Shell")
 timerFile = fso.GetParentFolderName(WScript.ScriptFullName) & "\timers.txt"
 
 Dim qm: qm = chr(34)
-Dim q
 
 Set args = WScript.Arguments
 
 ' ================== MAIN ==================
-' 1. Always check/recover unfinished timers on startup (uses MsgBox only if needed)
+' 1. Always check/recover unfinished timers on startup
 CheckPendingTimers
 
 ' 2. If arguments supplied → set a new timer
@@ -71,27 +70,28 @@ End If
 WScript.Quit
 
 ' ================================================
-' SUB: Show non-intrusive bubble via AutoItX
+' FUNCTION: Show non-intrusive bubble via nircmd / AutoItX
 ' ================================================
-Sub ShowBubble(title, text)
+Function ShowBubble(title, text)
     On Error Resume Next
     If Not IsEmpty(AutoItX) Then
-	q = NirMsg(title, text, 1, 20000)
-	'"shell32.dll,-16741", 20000
-	'shell.run "nircmd trayballoon " & qm & title & qm & " " & qm & text & qm & " " & qm & icon & qm & " " & timeout
-        'AutoItX.TrayTip title, text, 8, 1   ' 8 seconds, info icon (1)
+        NirMsg title, text, "shell32.dll,-16741", 20000
     Else
         ' Fallback only if AutoItX is missing
         WScript.Echo title & vbCrLf & text
     End If
     On Error GoTo 0
-End Sub
+    ShowBubble = True
+End Function
 
 ' ================================================
-' SUB: Check and handle unfinished timers
+' FUNCTION: Check and handle unfinished timers
 ' ================================================
-Sub CheckPendingTimers()
-    If Not fso.FileExists(timerFile) Then Exit Sub
+Function CheckPendingTimers()
+    If Not fso.FileExists(timerFile) Then
+        CheckPendingTimers = True
+        Exit Function
+    End If
     
     Dim lines, line, fields
     Dim hash, targetStr, typ, data, status
@@ -154,12 +154,13 @@ Sub CheckPendingTimers()
         ts.Write newContent
         ts.Close
     End If
-End Sub
+    CheckPendingTimers = True
+End Function
 
 ' ================================================
-' SUB: Parse args and set new timer
+' FUNCTION: Parse args and set a new timer
 ' ================================================
-Sub ProcessNewTimer()
+Function ProcessNewTimer()
     Dim timeSpec : timeSpec = Trim(args(0))
     Dim typ, data, targetDate, hash, targetStr
     
@@ -211,19 +212,21 @@ Sub ProcessNewTimer()
     Dim sleepMs : sleepMs = DateDiff("s", Now, targetDate) 
     If sleepMs > 0 Then
         If sleepMs > 2147483647 Then sleepMs = 2147483647
-	q = NirMsg("TimerScript", "Sover til " & targetDate & " (" & sleepMs & " s)", "shell32.dll,-16741", 20000)
+        NirMsg "TimerScript", "Sover til " & targetDate & " (" & sleepMs & " s)", "shell32.dll,-16741", 20000
         WScript.Sleep sleepMs*1000
     End If
     
     ' Show completion bubble
-    q = NirMsg("TimerScript done!", "Timer done", "shell32.dll,-16741", 35000)
+    NirMsg "TimerScript done!", "Timer done", "shell32.dll,-16741", 35000
 
     ' Execute action
     ExecuteAction typ, data
     
     ' Mark as completed
     MarkTimerDone hash
-End Sub
+    
+    ProcessNewTimer = True
+End Function
 
 ' ================================================
 ' FUNCTION: Parse time specifier → target Date
@@ -273,20 +276,24 @@ Function GenerateUniqueHash()
 End Function
 
 ' ================================================
-' SUB: Append new timer to file
+' FUNCTION: Append new timer to file
 ' ================================================
-Sub AppendTimer(hash, targetStr, typ, data)
+Function AppendTimer(hash, targetStr, typ, data)
     Dim ts
     Set ts = fso.OpenTextFile(timerFile, 8, True)
     ts.WriteLine hash & "|" & targetStr & "|" & typ & "|" & Replace(data, "|", "¦") & "|active"
     ts.Close
-End Sub
+    AppendTimer = True
+End Function
 
 ' ================================================
-' SUB: Mark a timer as done
+' FUNCTION: Mark a timer as done
 ' ================================================
-Sub MarkTimerDone(hash)
-    If Not fso.FileExists(timerFile) Then Exit Sub
+Function MarkTimerDone(hash)
+    If Not fso.FileExists(timerFile) Then
+        MarkTimerDone = True
+        Exit Function
+    End If
     
     Dim content, lines, line, fields, newContent
     newContent = ""
@@ -308,12 +315,13 @@ Sub MarkTimerDone(hash)
     Next
     
     fso.CreateTextFile(timerFile, True).Write newContent
-End Sub
+    MarkTimerDone = True
+End Function
 
 ' ================================================
-' SUB: Execute the scheduled action
+' FUNCTION: Execute the scheduled action
 ' ================================================
-Sub ExecuteAction(typ, data)
+Function ExecuteAction(typ, data)
     If typ = "msg" Then
         ' System modal MsgBox (as originally requested)
         shell.Popup data, 0, "Timer Finished", vbOKOnly + vbSystemModal + vbInformation
@@ -321,11 +329,14 @@ Sub ExecuteAction(typ, data)
         ' Launch executable
         shell.Run chr(34) & data & chr(34), 1, False
     End If
-End Sub
-
-Function NirMsg(title, tekst, icon, timeout)
-	qm = chr(34)
-	shell.run "nircmd trayballoon " & qm & title & qm & " " & qm & tekst & qm & " " & qm & icon & qm & " " & timeout
+    ExecuteAction = True
 End Function
 
-q = msgbox("Done!", vbExclamation + vbOkOnly, "")
+' ================================================
+' FUNCTION: NirMsg - nircmd trayballoon wrapper
+' ================================================
+Function NirMsg(title, tekst, icon, timeout)
+    qm = chr(34)
+    shell.run "nircmd trayballoon " & qm & title & qm & " " & qm & tekst & qm & " " & qm & icon & qm & " " & timeout
+    NirMsg = True
+End Function
