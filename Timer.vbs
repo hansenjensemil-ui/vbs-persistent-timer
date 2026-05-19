@@ -2,8 +2,8 @@
 ' Persistent Timer Script for VBScript (timer.vbs) - CLEANED & REFACTORED
 ' ================================================
 ' Usage examples (run with cscript or wscript):
-'   cscript timer.vbs @12:45 "Timeren er gået"
-'   cscript timer.vbs 45m "Husk tandlæge"
+'   cscript timer.vbs @12:45 "The timer has gone off"
+'   cscript timer.vbs 45m "Remember dentist"
 '   cscript timer.vbs 05:45 start notepad.exe
 '   cscript timer.vbs 2h start "C:\Program Files\Notepad++\notepad++.exe"
 '
@@ -212,7 +212,7 @@ Function ProcessNewTimer()
     Dim sleepMs : sleepMs = DateDiff("s", Now, targetDate) 
     If sleepMs > 0 Then
         If sleepMs > 2147483647 Then sleepMs = 2147483647
-        NirMsg "TimerScript", "Sover til " & targetDate & " (" & sleepMs & " s)", "shell32.dll,-16741", 20000
+        NirMsg "TimerScript", "Sleeping until " & targetDate & " (" & sleepMs & " s)", "shell32.dll,-16741", 20000
         WScript.Sleep sleepMs*1000
     End If
     
