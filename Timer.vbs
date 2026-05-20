@@ -331,4 +331,6 @@ Function NirMsg(title, tekst, icon, timeout)
     NirMsg = True
 End Function
 
+Msgbox "Script ran and exits now!", vbCritical + vbSystemModal + vbOKOnly, "TimerScript all done!"
+
 'Made by Jens Emil using Grok
