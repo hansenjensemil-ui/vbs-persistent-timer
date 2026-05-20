@@ -26,3 +26,4 @@ Requires NirCmd to run and launch "bubble-messages"
  - Uses nircmd TrayTip bubbles for all status messages
  - MsgBox / Echo only used when really needed
 
+Made by Jens Emil using Grok
