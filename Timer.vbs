@@ -330,3 +330,5 @@ Function NirMsg(title, tekst, icon, timeout)
     shell.run "nircmd trayballoon " & qm & title & qm & " " & qm & tekst & qm & " " & qm & icon & qm & " " & timeout
     NirMsg = True
 End Function
+
+'Made by Jens Emil using Grok
