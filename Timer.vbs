@@ -39,9 +39,7 @@ End Function
 ' ================================================
 ' AutoItX for non-intrusive bubble notifications (kept for compatibility)
 ' ================================================
-Dim AutoItX
 On Error Resume Next
-Set AutoItX = CreateObject("AutoItX3.Control")
 On Error GoTo 0
 
 ' ================================================
@@ -70,18 +68,11 @@ End If
 WScript.Quit
 
 ' ================================================
-' FUNCTION: Show non-intrusive bubble via nircmd / AutoItX
+' FUNCTION: Show non-intrusive bubble via nircmd
 ' ================================================
 Function ShowBubble(title, text)
     On Error Resume Next
-    If Not IsEmpty(AutoItX) Then
-        NirMsg title, text, "shell32.dll,-16741", 20000
-    Else
-        ' Fallback only if AutoItX is missing
-        WScript.Echo title & vbCrLf & text
-    End If
-    On Error GoTo 0
-    ShowBubble = True
+    NirMsg title, text, "shell32.dll,-16741", 20000
 End Function
 
 ' ================================================
@@ -165,21 +156,23 @@ Function ProcessNewTimer()
     Dim typ, data, targetDate, hash, targetStr
     
     ' Determine action type and data
-    If args.Count > 1 And LCase(Trim(args(1))) = "start" Then
-        typ = "start"
-        data = ""
-        Dim i
-        For i = 2 To args.Count - 1
-            data = data & args(i) & " "
-        Next
-        data = Trim(data)
-    Else
-        typ = "msg"
-        data = ""
-        For i = 1 To args.Count - 1
-            data = data & args(i) & " "
-        Next
-        data = Trim(data)
+    If args.Count > 1 Then
+		If LCase(Trim(args(1))) = "start" Then
+			typ = "start"
+			data = ""
+			Dim i
+			For i = 2 To args.Count - 1
+				data = data & args(i) & " "
+			Next
+			data = Trim(data)
+		Else
+			typ = "msg"
+			data = ""
+			For i = 1 To args.Count - 1
+				data = data & args(i) & " "
+			Next
+			data = Trim(data)
+		End If      
     End If
     
     If data = "" Then
