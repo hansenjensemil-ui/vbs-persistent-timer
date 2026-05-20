@@ -36,9 +36,6 @@ Function IIf(expr, truepart, falsepart)
     End If
 End Function
 
-' ================================================
-' AutoItX for non-intrusive bubble notifications (kept for compatibility)
-' ================================================
 On Error Resume Next
 On Error GoTo 0
 
