@@ -171,12 +171,7 @@ Function ProcessNewTimer()
 			data = Trim(data)
 		End If      
     End If
-    
-    'If data = "" Then
-    '    MsgBox "Error: No action (message or program) specified.", vbCritical, "Timer Error"
-    '    WScript.Quit 1
-    'End If
-    
+      
     ' Calculate target datetime
     targetDate = GetTargetTime(timeSpec)
     If IsNull(targetDate) Then
