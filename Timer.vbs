@@ -169,7 +169,10 @@ Function ProcessNewTimer()
 				data = data & args(i) & " "
 			Next
 			data = Trim(data)
-		End If      
+		End If   
+	Else	
+		typ = "msg"
+		data = "Timer done!"
     End If
       
     ' Calculate target datetime
