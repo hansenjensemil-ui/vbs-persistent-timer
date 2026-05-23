@@ -312,7 +312,7 @@ End Function
 Function ExecuteAction(typ, data)
     If typ = "msg" Then
         ' System modal MsgBox (as originally requested)
-        Msgbox "Timer done!", vbOKOnly + vbSystemModal + vbInformation, "Timer done!"
+        Msgbox "Timer done!", vbOKOnly + vbSystemModal + vbInformation, data
     ElseIf typ = "start" Then
         ' Launch executable
         shell.Run chr(34) & data & chr(34), 1, False
